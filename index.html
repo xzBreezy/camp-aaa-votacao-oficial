@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Camp AAA Aram — Votação</title>
+  <style>
+    :root{
+      --bg:#05070c;--gold:#f4d26a;--gold2:#e6b93b;--panel:#0f1624;--text:#eef3fb;--muted:#9fb0c5;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,Inter,Segoe UI,Roboto,Arial;
+      color:var(--text);
+      background:radial-gradient(1000px 600px at 10% -10%, #1a2238aa, transparent 70%), var(--bg);
+      overflow:hidden;
+    }
+    .particles{position:fixed;inset:0;pointer-events:none;z-index:0}
+    .dot{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--gold);
+         opacity:.6;filter:drop-shadow(0 0 6px var(--gold));animation:float var(--t) linear infinite;}
+    @keyframes float{0%{transform:translateY(0)}100%{transform:translateY(-120vh)}}
+    .wrap{max-width:720px;margin:32px auto;padding:18px;position:relative;z-index:1}
+    .card{
+      background:linear-gradient(180deg,#121a29ee,#0a0e14f5);
+      border:1px solid #253248;border-radius:18px;
+      box-shadow:0 8px 28px #0009, inset 0 0 0 1px #ffffff0a;
+      padding:22px;animation:glow 5s ease-in-out infinite alternate;
+    }
+    @keyframes glow{0%{box-shadow:0 0 20px #f4d26a33}100%{box-shadow:0 0 50px #f4d26a66}}
+    h1{text-transform:uppercase;text-align:center;margin:10px 0;
+      font-size:clamp(22px,5vw,30px);
+      background:linear-gradient(90deg,var(--gold),var(--gold2));
+      -webkit-background-clip:text;color:transparent;text-shadow:0 0 20px #f4d26a33;}
+    .hint{text-align:center;color:var(--muted);font-size:13px;margin-bottom:20px}
+    .team{display:flex;align-items:center;gap:10px;background:#0b111a;border:1px solid #22314a;border-radius:12px;padding:12px;margin:8px 0;transition:.3s}
+    .team:hover{transform:scale(1.03);box-shadow:0 0 18px #f4d26a33}
+    .team img{width:42px;height:42px;border-radius:8px}
+    .team label{flex:1;font-weight:800;text-transform:uppercase}
+    input{accent-color:var(--gold)}
+    button{
+      display:block;width:100%;margin-top:20px;
+      background:linear-gradient(90deg,var(--gold2),var(--gold));
+      color:#000;font-weight:900;text-transform:uppercase;letter-spacing:.05em;
+      padding:14px;border:none;border-radius:14px;
+      box-shadow:0 0 25px #f4d26a55;cursor:pointer;transition:.3s
+    }
+    button:hover{transform:scale(1.04);box-shadow:0 0 40px #f4d26a88;}
+    .thanks{
+      display:none;text-align:center;padding:30px;margin-top:20px;
+      background:#0b1117;border:1px dashed #2a3850;border-radius:14px;
+      color:var(--gold);font-size:18px;font-weight:800;
+      animation:fadeIn .6s ease forwards;
+    }
+    @keyframes fadeIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+    .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:99;}
+    .piece{position:absolute;width:8px;height:14px;opacity:.8;
+           animation:drop 3s linear infinite;transform-origin:center;}
+    @keyframes drop{0%{transform:translateY(-10px) rotate(0)}100%{transform:translateY(100vh) rotate(720deg)}}
+  </style>
+</head>
+<body>
+  <div class="particles" id="particles"></div>
+
+  <div class="wrap">
+    <div class="card" id="voteCard">
+      <h1>Quem vcs querem ver na SEMIFINAL – Camp AAA Aram?</h1>
+      <p class="hint">Escolhe <strong>um</strong> time. 1 voto por dispositivo/dia.</p>
+      <div class="team">
+        <input type="radio" name="wish" id="wish_msp" value="Meninas Super Poderosas">
+        <img src="https://i.postimg.cc/GtdVhsNJ/MENINAS-SUPER-PODEROSAS.png">
+        <label for="wish_msp">Meninas Super Poderosas</label>
+      </div>
+      <div class="team">
+        <input type="radio" name="wish" id="wish_panceiros" value="Panceiros">
+        <img src="https://i.postimg.cc/d36X7VPf/PANCEIROS.png">
+        <label for="wish_panceiros">Panceiros</label>
+      </div>
+      <div class="team">
+        <input type="radio" name="wish" id="wish_bagrenarok" value="Bagrenarok">
+        <img src="https://i.postimg.cc/QChwxWPp/BAGRENAROK.png">
+        <label for="wish_bagrenarok">Bagrenarok</label>
+      </div>
+      <button id="voteBtn">Enviar voto 🟡</button>
+    </div>
+
+    <div id="thanks" class="thanks">🎉 Seu voto foi registrado! Obrigado por participar! 💛</div>
+  </div>
+
+  <div class="confetti" id="confetti"></div>
+
+<script>
+  const p = document.getElementById('particles');
+  for(let i=0;i<25;i++){
+    const d=document.createElement('span');
+    d.className='dot';
+    d.style.left=Math.random()*100+'vw';
+    d.style.top=(100+Math.random()*50)+'vh';
+    d.style.setProperty('--t',(8+Math.random()*10)+'s');
+    p.appendChild(d);
+  }
+
+  const FORM_ACTION="https://formspree.io/f/mkgqeewj";
+  const today=new Date().toISOString().slice(0,10);
+  const LOCK_KEY=`campAAA_voto_wish_${today}`;
+  const voted=localStorage.getItem(LOCK_KEY);
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    if(voted){showThanks();return;}
+    document.getElementById('voteBtn').addEventListener('click',async()=>{
+      const wish=document.querySelector('input[name="wish"]:checked');
+      if(!wish){alert('Seleciona um time pra votar, chefe.');return;}
+      try{
+        await fetch(FORM_ACTION,{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({wish:wish.value})
+        });
+        localStorage.setItem(LOCK_KEY,Date.now());
+        showThanks();
+      }catch(e){alert('Erro no envio.');}
+    });
+  });
+
+  function showThanks(){
+    document.getElementById('voteCard').style.display='none';
+    document.getElementById('thanks').style.display='block';
+    launchConfetti();
+  }
+
+  function launchConfetti(){
+    const c=document.getElementById('confetti');
+    for(let i=0;i<60;i++){
+      const piece=document.createElement('div');
+      piece.className='piece';
+      piece.style.left=Math.random()*100+'vw';
+      piece.style.backgroundColor=Math.random()>.5?'#f4d26a':'#e6b93b';
+      piece.style.animationDelay=Math.random()*2+'s';
+      piece.style.width=Math.random()*6+6+'px';
+      piece.style.height=Math.random()*10+10+'px';
+      c.appendChild(piece);
+    }
+    setTimeout(()=>c.innerHTML='',4000);
+  }
+</script>
+</body>
+</html>
